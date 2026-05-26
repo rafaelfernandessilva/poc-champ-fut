@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arena Champ — POC</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --gold:#C9A84C;--gold-light:#F0C96E;--dark:#0E0E12;--card:#16161C;
+    --border:rgba(201,168,76,0.2);--text:#E8E4DA;--muted:#7A7570;
+    --green:#3B9A5A;--red:#C0392B;--blue:#2E86C1;
+  }
+  html,body{height:100%;background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif}
+  h1,h2,h3,.display{font-family:'Bebas Neue',sans-serif;letter-spacing:0.05em}
+
+  .app{display:flex;flex-direction:column;min-height:100vh}
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;border-bottom:1px solid var(--border);background:rgba(14,14,18,0.97);position:sticky;top:0;z-index:100}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);letter-spacing:0.1em;cursor:pointer}
+  .nav-tabs{display:flex;gap:4px}
+  .nav-tab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:transparent;transition:all 0.15s}
+  .nav-tab:hover{color:var(--text)}
+  .nav-tab.active{background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid var(--border)}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .btn-ghost{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:1px solid rgba(255,255,255,0.08);background:transparent;transition:all 0.15s}
+  .btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+  .btn-gold{padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;background:var(--gold);color:#0E0E12;border:none;transition:all 0.15s}
+  .btn-gold:hover{background:var(--gold-light)}
+  .user-pill{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:20px;background:rgba(201,168,76,0.08);border:1px solid var(--border);cursor:pointer}
+  .avatar{width:28px;height:28px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0E0E12}
+
+  .screen{display:none;flex:1}
+  .screen.active{display:block}
+
+  /* HOME */
+  .hero{padding:4rem 2rem 3rem;text-align:center}
+  .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:rgba(201,168,76,0.1);border:1px solid var(--border);font-size:12px;color:var(--gold);margin-bottom:1.5rem}
+  .hero h1{font-size:64px;line-height:1;color:#fff;margin-bottom:0.5rem}
+  .hero h1 span{color:var(--gold)}
+  .hero p{font-size:16px;color:var(--muted);max-width:480px;margin:0 auto 2rem;line-height:1.6}
+  .hero-actions{display:flex;justify-content:center;gap:12px;margin-bottom:3rem}
+  .btn-lg{padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.15s}
+  .btn-primary{background:var(--gold);color:#0E0E12;border:none}
+  .btn-primary:hover{background:var(--gold-light)}
+  .btn-secondary{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.15)}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+  .stats-row{display:flex;justify-content:center;gap:3rem;padding:2rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:0 2rem}
+  .stat{text-align:center}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold)}
+  .stat-label{font-size:12px;color:var(--muted);margin-top:2px}
+  .section{padding:2.5rem 2rem}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+  .section-title{font-size:24px;color:#fff}
+  .see-all{font-size:13px;color:var(--gold);cursor:pointer;background:none;border:none}
+
+  /* CARDS */
+  .champ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .champ-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform 0.15s,border-color 0.15s}
+  .champ-card:hover{transform:translateY(-2px);border-color:rgba(201,168,76,0.5)}
+  .champ-banner{height:80px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.1em}
+  .banner-liga{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#4FC3F7;border-bottom:2px solid #4FC3F7}
+  .banner-mata{background:linear-gradient(135deg,#1a0a0a,#2d1515);color:#EF5350;border-bottom:2px solid #EF5350}
+  .banner-grupos{background:linear-gradient(135deg,#0a1a0a,#152d15);color:#66BB6A;border-bottom:2px solid #66BB6A}
+  .champ-body{padding:14px}
+  .champ-name{font-weight:600;font-size:15px;color:#fff;margin-bottom:6px}
+  .champ-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .badge{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .badge-liga{background:rgba(79,195,247,0.1);color:#4FC3F7}
+  .badge-mata{background:rgba(239,83,80,0.1);color:#EF5350}
+  .badge-grupos{background:rgba(102,187,106,0.1);color:#66BB6A}
+  .badge-open{background:rgba(201,168,76,0.1);color:var(--gold)}
+  .badge-full{background:rgba(120,120,120,0.1);color:#888}
+  .champ-info{font-size:12px;color:var(--muted);display:flex;gap:12px}
+  .champ-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)}
+  .players-stack{display:flex}
+  .player-dot{width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,0.3);border:2px solid var(--card);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--gold);margin-left:-6px}
+  .player-dot:first-child{margin-left:0}
+  .join-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid var(--border);transition:all 0.15s}
+  .join-btn:hover{background:var(--gold);color:#0E0E12}
+  .join-btn.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
+
+  /* AUTH */
+  .auth-wrap{display:flex;min-height:calc(100vh - 60px)}
+  .auth-left{flex:1;padding:3rem;display:flex;flex-direction:column;justify-content:center;max-width:440px;margin:0 auto;width:100%}
+  .auth-right{flex:1;background:repeating-linear-gradient(45deg,rgba(201,168,76,0.03) 0,rgba(201,168,76,0.03) 1px,transparent 1px,transparent 40px);display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border)}
+  .auth-title{font-size:36px;color:#fff;margin-bottom:4px}
+  .auth-sub{font-size:14px;color:var(--muted);margin-bottom:2rem;line-height:1.5}
+  .form-group{margin-bottom:16px}
+  .form-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block}
+  .form-input{width:100%;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s}
+  .form-input:focus{border-color:var(--gold)}
+  .form-input::placeholder{color:var(--muted)}
+  select.form-input option{background:#1a1a20;color:var(--text)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-switch{font-size:13px;color:var(--muted);margin-top:1rem;text-align:center}
+  .form-switch span{color:var(--gold);cursor:pointer;text-decoration:underline}
+  .btn-form{width:100%;padding:11px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;background:var(--gold);color:#0E0E12;border:none;margin-top:8px;transition:all 0.15s}
+  .btn-form:hover{background:var(--gold-light)}
+  .divider{display:flex;align-items:center;gap:12px;margin:1.5rem 0;color:var(--muted);font-size:12px}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08)}
+  .social-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .social-btn{padding:10px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;text-align:center;transition:all 0.15s}
+  .social-btn:hover{border-color:rgba(255,255,255,0.25)}
+  .auth-preview-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:280px;text-align:left}
+  .preview-tag{font-size:11px;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem}
+  .preview-champ-name{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;margin-bottom:8px}
+  .preview-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+
+  /* DASHBOARD */
+  .dash-header{padding:2rem 2rem 1rem;border-bottom:1px solid var(--border)}
+  .dash-welcome{font-size:28px;color:#fff}
+  .dash-welcome span{color:var(--gold)}
+  .dash-tabs{display:flex;gap:2px;padding:1rem 2rem 0;border-bottom:1px solid var(--border)}
+  .dash-tab{padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+  .dash-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .dash-content{padding:2rem}
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:2rem}
+  .metric-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.25rem}
+  .metric-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .metric-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold)}
+  .metric-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .activity-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+  .activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .activity-dot.green{background:var(--green)}
+  .activity-dot.gold{background:var(--gold)}
+  .activity-dot.red{background:var(--red)}
+  .activity-text{font-size:13px;color:var(--text);flex:1}
+  .activity-time{font-size:11px;color:var(--muted)}
+  .my-champ-row{display:flex;align-items:center;gap:14px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;cursor:pointer;transition:border-color 0.15s}
+  .my-champ-row:hover{border-color:rgba(201,168,76,0.4)}
+  .champ-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .icon-liga{background:rgba(79,195,247,0.1)}
+  .icon-mata{background:rgba(239,83,80,0.1)}
+  .icon-grupos{background:rgba(102,187,106,0.1)}
+  .champ-row-info{flex:1}
+  .champ-row-name{font-weight:600;font-size:14px;color:#fff}
+  .champ-row-meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .champ-row-pos{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)}
+
+  /* BRACKET */
+  .bracket-container{overflow-x:auto;padding-bottom:1rem}
+  .bracket{display:flex;gap:32px;align-items:center;min-width:max-content}
+  .round{display:flex;flex-direction:column;gap:16px}
+  .round-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;text-align:center}
+  .match{background:var(--card);border:1px solid var(--border);border-radius:8px;width:200px;overflow:hidden}
+  .match-player{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;font-size:13px}
+  .match-player:first-child{border-bottom:1px solid rgba(255,255,255,0.06)}
+  .match-player.winner{color:#fff;font-weight:600;background:rgba(201,168,76,0.05)}
+  .match-player.loser{color:var(--muted)}
+  .match-player.tbd{color:var(--muted);font-style:italic}
+  .match-score{font-family:'Bebas Neue',sans-serif;font-size:16px}
+  .match-score.winner-score{color:var(--gold)}
+  .connector{color:var(--muted);font-size:24px;align-self:center}
+
+  /* CLASSIFICAÇÃO */
+  .table-scroll{overflow-x:auto}
+  .classif-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  .classif-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border)}
+  .classif-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04)}
+  .classif-table tr:hover td{background:rgba(255,255,255,0.02)}
+  .pos-badge{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+  .pos-1{background:rgba(201,168,76,0.2);color:var(--gold)}
+  .pos-2{background:rgba(192,192,192,0.15);color:#C0C0C0}
+  .pos-3{background:rgba(205,127,50,0.15);color:#CD7F32}
+  .pos-n{background:rgba(255,255,255,0.05);color:var(--muted)}
+  .form-dots{display:flex;gap:3px}
+  .form-dot{width:18px;height:18px;border-radius:3px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .form-v{background:rgba(59,154,90,0.2);color:#66BB6A}
+  .form-d{background:rgba(192,0,43,0.2);color:#EF5350}
+  .form-e{background:rgba(255,170,0,0.15);color:#FFA726}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;right:24px;background:#1e1e26;border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--text);z-index:999;transform:translateY(80px);opacity:0;transition:all 0.3s;max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast .toast-title{font-weight:600;color:var(--gold);margin-bottom:2px}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:90%;max-width:420px}
+  .modal h3{font-size:22px;color:#fff;margin-bottom:6px}
+  .modal p{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.5}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+  @media(max-width:700px){
+    .hero h1{font-size:44px}
+    .stats-row{gap:1.5rem;flex-wrap:wrap}
+    .auth-right{display:none}
+    .form-row{grid-template-columns:1fr}
+    .dash-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="navbar">
+    <div class="logo" onclick="goTo('home')">⚡ ARENA CHAMP</div>
+    <div class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" onclick="goTo('home')">Início</button>
+      <button class="nav-tab" onclick="goTo('campeonatos')">Campeonatos</button>
+      <button class="nav-tab dash-only" id="dashNav" style="display:none" onclick="goTo('dashboard')">Meu Painel</button>
+    </div>
+    <div class="nav-right" id="navRight">
+      <button class="btn-ghost" onclick="goTo('login')">Entrar</button>
+      <button class="btn-gold" onclick="goTo('register')">Cadastrar</button>
+    </div>
+  </nav>
+
+  <!-- ===== HOME ===== -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <div class="hero-badge"><i class="ti ti-trophy"></i> Plataforma de Campeonatos</div>
+      <h1>SEJA O<br><span>CAMPEÃO</span><br>DA ARENA</h1>
+      <p>Crie ou entre em campeonatos de futebol virtual. Liga, mata-mata ou fase de grupos — você escolhe.</p>
+      <div class="hero-actions">
+        <button class="btn-lg btn-primary" onclick="goTo('register')">Criar conta grátis</button>
+        <button class="btn-lg btn-secondary" onclick="goTo('campeonatos')">Ver campeonatos</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">1.240</div><div class="stat-label">Jogadores ativos</div></div>
+      <div class="stat"><div class="stat-num">87</div><div class="stat-label">Campeonatos em curso</div></div>
+      <div class="stat"><div class="stat-num">14.500</div><div class="stat-label">Partidas disputadas</div></div>
+      <div class="stat"><div class="stat-num">312</div><div class="stat-label">Campeões coroados</div></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Campeonatos em destaque</div>
+        <button class="see-all" onclick="goTo('campeonatos')">Ver todos →</button>
+      </div>
+      <div class="champ-grid" id="champGridHome"></div>
+    </div>
+  </div>
+
+  <!-- ===== CAMPEONATOS ===== -->
+  <div class="screen" id="screen-campeonatos">
+    <div style="padding:2rem 2rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-size:28px;color:#fff">Campeonatos</h2>
+        <p style="font-size:13px;color:var(--muted);margin-top:4px">Encontre seu próximo desafio</p>
+      </div>
+      <select class="form-input" style="width:auto;padding:8px 14px;font-size:13px" id="filterType" onchange="filterChamps()">
+        <option value="">Todos os formatos</option>
+        <option value="Liga">Liga</option>
+        <option value="Mata-mata">Mata-mata</option>
+        <option value="Grupos + Mata-mata">Grupos + Mata-mata</option>
+      </select>
+    </div>
+    <div style="padding:0 2rem 3rem">
+      <div class="champ-grid" id="champGridAll"></div>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN ===== -->
+  <div class="screen" id="screen-login">
+    <div class="auth-wrap">
+      <div class="auth-left">
+        <div class="auth-title">BEM-VINDO<br>DE VOLTA</div>
+        <p class="auth-sub">Entre na sua conta e volte à competição.</p>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="form-input" type="email" placeholder="seu@email.com" id="loginEmail">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input class="form-input" type="password" placeholder="••••••••" id="loginPass">
+        </div>
+        <button class="btn-form" onclick="doLogin()">Entrar na Arena</button>
+        <div class="divider">ou continue com</div>
+        <div class="social-btns">
+          <div class="social-btn"><i class="ti ti-brand-google"></i> Google</div>
+          <div class="social-btn"><i class="ti ti-brand-discord"></i> Discord</div>
+        </div>
+        <div class="form-switch">Não tem conta? <span onclick="goTo('register')">Criar agora</span></div>
+      </div>
+      <div class="auth-right">
+        <div style="text-align:center">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Aguardando você...</div>
+          <div class="auth-preview-card">
+            <div class="preview-tag">🏆 Liga Premier Arena</div>
+            <div class="preview-champ-name">TEMPORADA 2025</div>
+            <div class="preview-row"><span>Rodada atual</span><span style="color:var(--text)">14ª</span></div>
+            <div class="preview-row"><span>Participantes</span><span style="color:var(--text)">16 times</span></div>
+            <div class="preview-row" style="border:none"><span>Status</span><span style="color:#66BB6A">Em andamento</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CADASTRO ===== -->
+  <div class="screen" id="screen-register">
+    <div class="auth-wrap">
+      <div class="auth-left" style="max-width:480px">
+        <div class="auth-title">CRIAR<br>SUA CONTA</div>
+        <p class="auth-sub">Junte-se a mais de 1.200 jogadores na Arena.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input class="form-input" placeholder="Seu nome" id="regNome">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apelido (nick)</label>
+            <input class="form-input" placeholder="@nick" id="regNick">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="form-input" type="email" placeholder="seu@email.com" id="regEmail">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Senha</label>
+            <input class="form-input" type="password" placeholder="••••••••" id="regPass">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar senha</label>
+            <input class="form-input" type="password" placeholder="••••••••" id="regPass2">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plataforma preferida</label>
+          <select class="form-input" id="regPlat">
+            <option>eFootball / PES</option>
+            <option>EA FC / FIFA</option>
+            <option>Ambos</option>
+          </select>
+        </div>
+        <button class="btn-form" onclick="doRegister()">Criar conta e entrar</button>
+        <div class="form-switch">Já tem conta? <span onclick="goTo('login')">Entrar</span></div>
+      </div>
+      <div class="auth-right">
+        <div style="text-align:center;padding:2rem">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:var(--gold);line-height:1">3 MODOS<br>DE JOGO</div>
+          <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:12px;text-align:left;width:220px">
+            <div style="padding:12px;background:rgba(79,195,247,0.05);border:1px solid rgba(79,195,247,0.2);border-radius:8px">
+              <div style="font-size:13px;font-weight:600;color:#4FC3F7">Liga</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Todos jogam contra todos. Pontos corridos.</div>
+            </div>
+            <div style="padding:12px;background:rgba(239,83,80,0.05);border:1px solid rgba(239,83,80,0.2);border-radius:8px">
+              <div style="font-size:13px;font-weight:600;color:#EF5350">Mata-mata</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Eliminação direta. Um erro e você sai.</div>
+            </div>
+            <div style="padding:12px;background:rgba(102,187,106,0.05);border:1px solid rgba(102,187,106,0.2);border-radius:8px">
+              <div style="font-size:13px;font-weight:600;color:#66BB6A">Grupos + Mata-mata</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Fase de grupos seguida de eliminatórias.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="screen" id="screen-dashboard">
+    <div class="dash-header">
+      <div class="dash-welcome">Olá, <span id="dashName">Jogador</span> 👋</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Aqui está um resumo da sua participação</div>
+    </div>
+    <div class="dash-tabs">
+      <button class="dash-tab active" onclick="switchDashTab('overview',this)">Visão geral</button>
+      <button class="dash-tab" onclick="switchDashTab('meuschamps',this)">Meus campeonatos</button>
+      <button class="dash-tab" onclick="switchDashTab('classificacao',this)">Classificação</button>
+      <button class="dash-tab" onclick="switchDashTab('bracket',this)">Chave mata-mata</button>
+    </div>
+    <div class="dash-content">
+
+      <!-- Overview -->
+      <div id="tab-overview">
+        <div class="dash-grid">
+          <div class="metric-card"><div class="metric-label">Campeonatos ativos</div><div class="metric-val">3</div><div class="metric-sub">+1 aguardando início</div></div>
+          <div class="metric-card"><div class="metric-label">Partidas jogadas</div><div class="metric-val">47</div><div class="metric-sub">Esta temporada</div></div>
+          <div class="metric-card"><div class="metric-label">Taxa de vitória</div><div class="metric-val">62%</div><div class="metric-sub">29V · 9E · 9D</div></div>
+          <div class="metric-card"><div class="metric-label">Melhor posição</div><div class="metric-val">2º</div><div class="metric-sub">Liga Premier Arena</div></div>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Atividade recente</div>
+        <div class="activity-item"><div class="activity-dot green"></div><div class="activity-text">Vitória 3×1 contra <strong style="color:#fff">@zk_destroyer</strong> — Liga Premier</div><div class="activity-time">2h atrás</div></div>
+        <div class="activity-item"><div class="activity-dot gold"></div><div class="activity-text">Você avançou para as oitavas de final do <strong style="color:#fff">Copa Arena</strong></div><div class="activity-time">1d atrás</div></div>
+        <div class="activity-item"><div class="activity-dot red"></div><div class="activity-text">Derrota 0×2 contra <strong style="color:#fff">@fenix99</strong> — Copa Arena</div><div class="activity-time">2d atrás</div></div>
+        <div class="activity-item"><div class="activity-dot green"></div><div class="activity-text">Empate 1×1 com <strong style="color:#fff">@nunes_fc</strong> — Liga Premier</div><div class="activity-time">3d atrás</div></div>
+        <div style="margin-top:1.5rem">
+          <button class="btn-gold" onclick="goTo('campeonatos')" style="padding:10px 20px;font-size:14px">+ Entrar em um campeonato</button>
+        </div>
+      </div>
+
+      <!-- Meus Campeonatos -->
+      <div id="tab-meuschamps" style="display:none">
+        <div class="my-champ-row" onclick="switchDashTab('classificacao',document.querySelectorAll('.dash-tab')[2])">
+          <div class="champ-icon icon-liga">📊</div>
+          <div class="champ-row-info">
+            <div class="champ-row-name">Liga Premier Arena</div>
+            <div class="champ-row-meta">Liga · Rodada 14/30 · 16 participantes</div>
+          </div>
+          <div style="text-align:right"><div class="champ-row-pos">2º</div><div style="font-size:11px;color:var(--muted)">posição</div></div>
+        </div>
+        <div class="my-champ-row" onclick="switchDashTab('bracket',document.querySelectorAll('.dash-tab')[3])">
+          <div class="champ-icon icon-mata">⚔️</div>
+          <div class="champ-row-info">
+            <div class="champ-row-name">Copa Arena — Mata-mata</div>
+            <div class="champ-row-meta">Mata-mata · Oitavas de final</div>
+          </div>
+          <div style="text-align:right"><div class="champ-row-pos" style="color:#EF5350">OF</div><div style="font-size:11px;color:var(--muted)">fase atual</div></div>
+        </div>
+        <div class="my-champ-row">
+          <div class="champ-icon icon-grupos">🏟️</div>
+          <div class="champ-row-info">
+            <div class="champ-row-name">Torneio Inverno 2025</div>
+            <div class="champ-row-meta">Grupos + Mata-mata · Grupo B · 3ª posição</div>
+          </div>
+          <div style="text-align:right"><div class="champ-row-pos" style="color:#66BB6A">3º</div><div style="font-size:11px;color:var(--muted)">grupo B</div></div>
+        </div>
+        <button class="btn-gold" style="margin-top:1.5rem;padding:10px 20px;font-size:14px" onclick="goTo('campeonatos')">+ Entrar em outro campeonato</button>
+      </div>
+
+      <!-- Classificação -->
+      <div id="tab-classificacao" style="display:none">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1.5rem">Liga Premier Arena — Tabela de classificação</div>
+        <div class="table-scroll">
+          <table class="classif-table">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>Jogador</th>
+                <th>J</th><th>V</th><th>E</th><th>D</th>
+                <th>GP</th><th>GC</th><th>SG</th><th>Pts</th>
+                <th>Forma</th>
+              </tr>
+            </thead>
+            <tbody id="classifBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bracket -->
+      <div id="tab-bracket" style="display:none">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1.5rem">Copa Arena — Chave mata-mata</div>
+        <div class="bracket-container">
+          <div class="bracket" id="bracketView"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ENTRADA CAMPEONATO -->
+<div class="modal-overlay" id="joinModal">
+  <div class="modal">
+    <h3 id="modalChampName">Entrar no campeonato</h3>
+    <p id="modalChampDesc">Você tem certeza que deseja entrar neste campeonato?</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn-gold" onclick="confirmJoin()">Confirmar entrada</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toastTitle"></div>
+  <div id="toastMsg"></div>
+</div>
+
+<script>
+const champs=[
+  {id:1,name:"Liga Premier Arena",type:"Liga",players:14,max:16,status:"open",rounds:"14/30"},
+  {id:2,name:"Copa Arena",type:"Mata-mata",players:16,max:16,status:"full",rounds:"Oitavas"},
+  {id:3,name:"Torneio Inverno 2025",type:"Grupos + Mata-mata",players:20,max:24,status:"open",rounds:"Grupos"},
+  {id:4,name:"Liga Amadores BR",type:"Liga",players:8,max:12,status:"open",rounds:"Inscrições"},
+  {id:5,name:"Kings Cup",type:"Mata-mata",players:11,max:16,status:"open",rounds:"Inscrições"},
+  {id:6,name:"Super Liga Sul",type:"Grupos + Mata-mata",players:16,max:20,status:"open",rounds:"Inscrições"},
+];
+
+const classifData=[
+  {pos:1,nick:"@fenix99",j:14,v:11,e:2,d:1,gp:38,gc:12,pts:35,form:["V","V","V","E","V"]},
+  {pos:2,nick:"@você",j:14,v:9,e:2,d:3,gp:29,gc:15,pts:29,form:["V","D","V","E","V"],me:true},
+  {pos:3,nick:"@zk_destroyer",j:14,v:8,e:3,d:3,gp:24,gc:14,pts:27,form:["V","V","D","V","E"]},
+  {pos:4,nick:"@nunes_fc",j:14,v:7,e:4,d:3,gp:22,gc:16,pts:25,form:["E","V","V","D","V"]},
+  {pos:5,nick:"@striker7",j:14,v:6,e:3,d:5,gp:20,gc:21,pts:21,form:["D","V","E","V","D"]},
+  {pos:6,nick:"@blaze_11",j:14,v:5,e:4,d:5,gp:18,gc:20,pts:19,form:["E","D","V","V","D"]},
+];
+
+const bracketData={
+  qf:[
+    {p1:"@fenix99",s1:3,p2:"@shadow_x",s2:1,w:0},
+    {p1:"@você",s1:2,p2:"@blaze_11",s2:0,w:0},
+    {p1:"@zk_destroyer",s1:2,p2:"@nitro88",s2:1,w:0},
+    {p1:"@nunes_fc",s1:"—",p2:"@striker7",s2:"—",w:1},
+  ],
+  sf:[
+    {p1:"@fenix99",s1:"—",p2:"@você",s2:"—",w:-1},
+    {p1:"@zk_destroyer",s1:"—",p2:"TBD",s2:"—",w:-1},
+  ],
+  f:[{p1:"TBD",s1:"—",p2:"TBD",s2:"—",w:-1}]
+};
+
+let loggedIn=false;
+let userName="Jogador";
+let pendingJoinId=null;
+
+function typeClass(t){return t==="Liga"?"liga":t==="Mata-mata"?"mata":"grupos"}
+
+function renderChampCard(c){
+  const tc=typeClass(c.type);
+  const full=c.status==="full";
+  const dots=[...Array(Math.min(4,c.players))].map((_,i)=>`<div class="player-dot">${String.fromCharCode(65+i)}</div>`).join('');
+  return `<div class="champ-card">
+    <div class="champ-banner banner-${tc}">${c.name.toUpperCase()}</div>
+    <div class="champ-body">
+      <div class="champ-name">${c.name}</div>
+      <div class="champ-meta">
+        <span class="badge badge-${tc}">${c.type}</span>
+        <span class="badge ${full?'badge-full':'badge-open'}">${full?'Lotado':'Vagas abertas'}</span>
+      </div>
+      <div class="champ-info">
+        <span><i class="ti ti-users"></i> ${c.players}/${c.max}</span>
+        <span><i class="ti ti-flag"></i> ${c.rounds}</span>
+      </div>
+      <div class="champ-footer">
+        <div class="players-stack">${dots}</div>
+        <button class="join-btn${full?' disabled':''}" onclick="handleJoin(${c.id},'${c.name}','${c.type}')">
+          ${full?'Lotado':'Entrar'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function handleJoin(id,name,type){
+  if(!loggedIn){
+    showToast('Login necessário','Faça login para entrar em um campeonato.');
+    setTimeout(()=>goTo('login'),1200);
+    return;
+  }
+  pendingJoinId=id;
+  document.getElementById('modalChampName').textContent='Entrar: '+name;
+  document.getElementById('modalChampDesc').textContent=`Confirma sua inscrição no campeonato "${name}" (${type})?`;
+  document.getElementById('joinModal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('joinModal').classList.remove('open');}
+
+function confirmJoin(){
+  closeModal();
+  showToast('🎉 Inscrição confirmada!','Você entrou no campeonato com sucesso.');
+  setTimeout(()=>{goTo('dashboard');switchDashTab('meuschamps',document.querySelectorAll('.dash-tab')[1]);},1500);
+}
+
+function renderGrids(){
+  document.getElementById('champGridHome').innerHTML=champs.slice(0,3).map(renderChampCard).join('');
+  document.getElementById('champGridAll').innerHTML=champs.map(renderChampCard).join('');
+}
+
+function filterChamps(){
+  const v=document.getElementById('filterType').value;
+  const filtered=v?champs.filter(c=>c.type===v):champs;
+  document.getElementById('champGridAll').innerHTML=filtered.map(renderChampCard).join('');
+}
+
+function renderClassif(){
+  document.getElementById('classifBody').innerHTML=classifData.map(r=>{
+    const sg=r.gp-r.gc;
+    const posCls=r.pos===1?'pos-1':r.pos===2?'pos-2':r.pos===3?'pos-3':'pos-n';
+    const formHtml=r.form.map(f=>`<div class="form-dot form-${f.toLowerCase()}">${f}</div>`).join('');
+    return `<tr style="${r.me?'background:rgba(201,168,76,0.05)':''}">
+      <td><span class="pos-badge ${posCls}">${r.pos}</span></td>
+      <td style="font-weight:${r.me?'600':'400'};color:${r.me?'var(--gold)':'var(--text)'}">${r.nick}${r.me?' 👤':''}</td>
+      <td>${r.j}</td>
+      <td style="color:#66BB6A">${r.v}</td>
+      <td style="color:#FFA726">${r.e}</td>
+      <td style="color:#EF5350">${r.d}</td>
+      <td>${r.gp}</td><td>${r.gc}</td>
+      <td>${sg>0?'+'+sg:sg}</td>
+      <td style="font-weight:700;color:var(--gold)">${r.pts}</td>
+      <td><div class="form-dots">${formHtml}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBracket(){
+  const rounds=[
+    {label:'Quartas de final',matches:bracketData.qf},
+    {label:'Semifinais',matches:bracketData.sf},
+    {label:'Final',matches:bracketData.f},
+  ];
+  document.getElementById('bracketView').innerHTML=rounds.map(r=>`
+    <div class="round">
+      <div class="round-label">${r.label}</div>
+      ${r.matches.map(m=>`
+        <div class="match">
+          <div class="match-player ${m.w===0?'winner':m.w===-1?'tbd':'loser'}">
+            <span>${m.p1}</span>
+            <span class="match-score ${m.w===0?'winner-score':''}">${m.s1}</span>
+          </div>
+          <div class="match-player ${m.w===1?'winner':m.w===-1?'tbd':'loser'}">
+            <span>${m.p2}</span>
+            <span class="match-score ${m.w===1?'winner-score':''}">${m.s2}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('<div class="connector">›</div>');
+}
+
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const map={home:0,campeonatos:1,dashboard:2};
+  if(map[screen]!==undefined){
+    const tabs=document.querySelectorAll('.nav-tab');
+    if(tabs[map[screen]]) tabs[map[screen]].classList.add('active');
+  }
+  window.scrollTo(0,0);
+}
+
+function doLogin(){
+  const e=document.getElementById('loginEmail').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!e||!p){showToast('Atenção','Preencha e-mail e senha.');return;}
+  loggedIn=true;
+  userName=e.split('@')[0];
+  showLoggedNav();
+  document.getElementById('dashName').textContent=userName;
+  showToast('✅ Login realizado!','Bem-vindo de volta, '+userName+'!');
+  setTimeout(()=>goTo('dashboard'),800);
+}
+
+function doRegister(){
+  const nick=(document.getElementById('regNick').value||'').replace('@','').trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pass=document.getElementById('regPass').value;
+  const pass2=document.getElementById('regPass2').value;
+  if(!email){showToast('Atenção','Preencha o e-mail.');return;}
+  if(pass&&pass!==pass2){showToast('Atenção','As senhas não coincidem.');return;}
+  loggedIn=true;
+  userName=nick||email.split('@')[0];
+  showLoggedNav();
+  document.getElementById('dashName').textContent=userName;
+  showToast('🎉 Conta criada!','Seja bem-vindo à Arena, '+userName+'!');
+  setTimeout(()=>goTo('dashboard'),800);
+}
+
+function showLoggedNav(){
+  document.getElementById('navRight').innerHTML=`
+    <div class="user-pill" onclick="goTo('dashboard')">
+      <div class="avatar">${userName[0].toUpperCase()}</div>
+      <span style="font-size:13px;font-weight:500">${userName}</span>
+    </div>
+    <button class="btn-ghost" onclick="doLogout()">Sair</button>`;
+  document.getElementById('dashNav').style.display='';
+}
+
+function doLogout(){
+  loggedIn=false;
+  document.getElementById('navRight').innerHTML=`
+    <button class="btn-ghost" onclick="goTo('login')">Entrar</button>
+    <button class="btn-gold" onclick="goTo('register')">Cadastrar</button>`;
+  document.getElementById('dashNav').style.display='none';
+  showToast('Até logo!','Você saiu da sua conta.');
+  goTo('home');
+}
+
+function switchDashTab(tab,btn){
+  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  ['overview','meuschamps','classificacao','bracket'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'':'none';
+  });
+}
+
+function showToast(title,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastTitle').textContent=title;
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Fechar modal clicando fora
+document.getElementById('joinModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+renderGrids();
+renderClassif();
+renderBracket();
+</script>
+</body>
+</html>
